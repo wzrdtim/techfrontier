@@ -37,7 +37,7 @@ services:
       - key: ADMIN_PASSWORD
         sync: false # set a strong password in the Render Dashboard
       - key: SITE_URL
-        value: https://techfrontier.onrender.com
+        value: https://techfrontier.se
       - key: ALGORITHM
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES

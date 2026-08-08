@@ -130,33 +130,15 @@
 
     <footer class="site-footer">
       <div class="mx-auto w-full max-w-site px-4 py-14 sm:px-6 lg:px-8">
-        <div class="grid gap-12 lg:grid-cols-3 lg:gap-10">
+        <div class="grid gap-12 lg:grid-cols-2 lg:gap-10">
           <div>
-            <h2 class="text-sm font-extrabold tracking-[0.14em] text-white uppercase">Teknik värd att följa</h2>
-            <p class="mt-4 max-w-sm text-sm leading-relaxed text-white/65">
-              Få nya artiklar, analyser och intressanta idéer om AI och teknologi direkt i din inkorg. Inget brus, ingen spam. Bara genomtänkta texter när det finns något värt att dela.
+            <h2 class="text-sm font-extrabold tracking-[0.14em] text-white uppercase">Teknik med perspektiv</h2>
+            <p class="mt-4 text-sm leading-relaxed text-white/65">
+              {{ app_name }} är en personlig techpublikation om AI, teknologi och framtidens idéer. Här delar jag mina tankar, analyser och lärdomar kring tekniken som förändrar hur vi bygger, arbetar och lever.
             </p>
-            <form class="newsletter-form mt-5" data-newsletter-form novalidate>
-              <label for="footer-newsletter-email" class="sr-only">Email address</label>
-              <div class="flex overflow-hidden rounded-sm bg-white shadow-sm">
-                <input
-                  id="footer-newsletter-email"
-                  name="email"
-                  type="email"
-                  required
-                  autocomplete="email"
-                  placeholder="Email Address"
-                  class="min-w-0 flex-1 border-0 bg-transparent px-3 py-3 text-sm text-[#1a2423] outline-none placeholder:text-[#6b8080]"
-                />
-                <button
-                  type="submit"
-                  class="shrink-0 bg-[#c45c3a] px-4 py-3 text-xs font-extrabold tracking-wide text-white uppercase transition hover:bg-[#b04f30]"
-                >
-                  Sign Up
-                </button>
-              </div>
-              <p class="newsletter-message mt-2 hidden text-sm" role="status"></p>
-            </form>
+            <a href="/about" class="site-footer-link mt-4 inline-flex items-center gap-1.5 text-sm font-semibold">
+              Om {{ app_name }} <span aria-hidden="true">&gt;</span>
+            </a>
             {% if social_links %}
             <ul class="mt-6 flex flex-wrap gap-3" aria-label="Social">
               {% for link in social_links %}
@@ -182,16 +164,6 @@
               {% endfor %}
             </ul>
             {% endif %}
-          </div>
-
-          <div>
-            <h2 class="text-sm font-extrabold tracking-[0.14em] text-white uppercase">Teknik med perspektiv</h2>
-            <p class="mt-4 text-sm leading-relaxed text-white/65">
-              {{ app_name }} är en personlig techpublikation om AI, teknologi och framtidens idéer. Här delar jag mina tankar, analyser och lärdomar kring tekniken som förändrar hur vi bygger, arbetar och lever.
-            </p>
-            <a href="/about" class="site-footer-link mt-4 inline-flex items-center gap-1.5 text-sm font-semibold">
-              Om {{ app_name }} <span aria-hidden="true">&gt;</span>
-            </a>
           </div>
 
           <div>
