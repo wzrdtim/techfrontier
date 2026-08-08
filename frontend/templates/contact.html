@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}{{ meta_title }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": {{ ("Contact — " ~ app_name) | tojson }},
+  "description": {{ meta_description | tojson }},
+  "url": {{ canonical_url | tojson }},
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": {{ app_name | tojson }},
+    "url": {{ (site_url ~ "/") | tojson }}
+  },
+  "inLanguage": "sv"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="hero-grid" aria-labelledby="contact-heading">
+  <div class="mx-auto max-w-site px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
+    <p class="text-xs font-bold tracking-[0.28em] text-accent-bright uppercase">Kontakt</p>
+    <h1 id="contact-heading" class="mx-auto mt-4 max-w-3xl text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
+      Kontakta oss
+    </h1>
+    <p class="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
+      Frågor, feedback, eller kommentarer om en artikel – skicka ett meddelande så återkommer vi till dig.
+    </p>
+  </div>
+</section>
+
+<section class="mx-auto max-w-measure px-4 pb-16 sm:px-6 sm:pb-20 lg:px-8">
+  {% if success %}
+  <p class="rounded-xl bg-accent-mist px-4 py-3 text-sm text-accent-deep" role="status">
+    Tack! Ditt meddelande har skickats. Vi återkommer via e-post så snart vi kan.
+  </p>
+  {% endif %}
+
+  {% if error %}
+  <p class="mb-4 text-sm text-danger" role="alert">{{ error }}</p>
+  {% endif %}
+
+  <form method="post" action="/contact" class="mt-2 space-y-4">
+    <div>
+      <label for="email" class="mb-1 block text-sm font-semibold">E-post</label>
+      <input
+        id="email"
+        name="email"
+        type="email"
+        required
+        maxlength="255"
+        autocomplete="email"
+        value="{{ form_email or '' }}"
+        class="w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-wash"
+      />
+    </div>
+    <div>
+      <label for="subject" class="mb-1 block text-sm font-semibold">Ämne</label>
+      <input
+        id="subject"
+        name="subject"
+        type="text"
+        required
+        maxlength="200"
+        value="{{ form_subject or '' }}"
+        class="w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-wash"
+      />
+    </div>
+    <div>
+      <label for="body" class="mb-1 block text-sm font-semibold">Meddelande</label>
+      <textarea
+        id="body"
+        name="body"
+        rows="6"
+        required
+        maxlength="5000"
+        class="w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm leading-relaxed outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-wash"
+      >{{ form_body or '' }}</textarea>
+    </div>
+    <div>
+      <label for="captcha_answer" class="mb-1 block text-sm font-semibold">CAPTCHA — {{ captcha_question }}</label>
+      <input type="hidden" name="captcha_token" value="{{ captcha_token }}" />
+      <input
+        id="captcha_answer"
+        name="captcha_answer"
+        type="text"
+        inputmode="numeric"
+        required
+        autocomplete="off"
+        placeholder="Ditt svar"
+        class="w-full max-w-xs rounded-lg border border-line bg-surface px-3 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-wash"
+      />
+    </div>
+    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-accent-deep px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent">
+      Skicka meddelande
+    </button>
+  </form>
+</section>
+{% endblock %}

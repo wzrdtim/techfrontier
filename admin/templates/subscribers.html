@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Subscribers — {{ app_name }}{% endblock %}
+
+{% block content %}
+<section>
+  <div>
+    <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Subscribers</h1>
+    <p class="mt-1 text-muted">{{ total | intcomma }} newsletter subscribers</p>
+  </div>
+
+  {% if subscribers %}
+  <div class="mt-8 overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+    <table class="w-full border-collapse text-left text-sm">
+      <thead class="border-b border-line bg-[#f8fbfa] text-xs font-bold uppercase tracking-[0.14em] text-muted">
+        <tr>
+          <th class="px-4 py-3 font-bold">Email</th>
+          <th class="px-4 py-3 font-bold">Joined</th>
+          <th class="px-4 py-3 font-bold"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line">
+        {% for subscriber in subscribers %}
+        <tr>
+          <td class="px-4 py-3.5 font-medium">{{ subscriber.email }}</td>
+          <td class="px-4 py-3.5 text-ink-soft">{{ subscriber.created_at.strftime("%b %d, %Y") }}</td>
+          <td class="px-4 py-3.5 text-right">
+            <form method="post" action="/admin/subscribers/{{ subscriber.id }}/delete" onsubmit="return confirm('Remove this subscriber?');" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+              <button type="submit" class="text-sm font-semibold text-danger">Remove</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="mt-10 text-muted">No subscribers yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

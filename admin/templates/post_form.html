@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} — {{ app_name }}{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-3xl animate-rise pt-4">
+  <p class="text-sm uppercase tracking-wide text-muted">
+    <a href="/admin/articles" class="text-muted no-underline hover:text-accent">← Articles</a>
+  </p>
+  <h1 class="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{{ page_title }}</h1>
+
+  {% if post %}
+  <dl class="mt-4 grid gap-2 text-sm text-muted sm:grid-cols-3">
+    <div>
+      <dt class="font-semibold text-ink">Created</dt>
+      <dd><time datetime="{{ post.created_at.isoformat() }}">{{ post.created_at.strftime("%b %d, %Y %H:%M") }} UTC</time></dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Updated</dt>
+      <dd><time datetime="{{ post.updated_at.isoformat() }}">{{ post.updated_at.strftime("%b %d, %Y %H:%M") }} UTC</time></dd>
+    </div>
+    <div>
+      <dt class="font-semibold text-ink">Published</dt>
+      <dd>
+        {% if post.published_at %}
+        <time datetime="{{ post.published_at.isoformat() }}">{{ post.published_at.strftime("%b %d, %Y %H:%M") }} UTC</time>
+        {% else %}
+        —
+        {% endif %}
+      </dd>
+    </div>
+  </dl>
+  {% endif %}
+
+  {% if error %}
+  <p class="mt-4 text-danger">{{ error }}</p>
+  {% endif %}
+
+  <form id="post-form" method="post" action="{{ form_action }}" enctype="multipart/form-data" class="mt-8 space-y-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+    <div>
+      <label for="title" class="mb-1 block text-sm font-semibold">Title</label>
+      <input
+        id="title"
+        name="title"
+        type="text"
+        required
+        maxlength="200"
+        value="{% if post %}{{ post.title }}{% elif form_title is defined %}{{ form_title }}{% endif %}"
+        class="w-full rounded border border-line bg-white px-3 py-2.5 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-wash"
+      />
+    </div>
+
+    <div>
+      <label for="excerpt" class="mb-1 block text-sm font-semibold">
+        Excerpt <span class="font-normal text-muted">(optional)</span>
+      </label>
+      <input
+        id="excerpt"
+        name="excerpt"
+        type="text"
+        maxlength="500"
+        value="{% if post %}{{ post.excerpt or '' }}{% elif form_excerpt is defined %}{{ form_excerpt }}{% endif %}"
+        class="w-full rounded border border-line bg-white px-3 py-2.5 outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-wash"
+      />
+    </div>
+
+    <div>
+      <p class="mb-2 text-sm font-semibold">Tags</p>
+      <div class="flex flex-wrap gap-4">
+        {% for tag in all_tags %}
+        <label class="inline-flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            name="tag_ids"
+            value="{{ tag.id }}"
+            class="size-4 rounded border-line text-accent"
+            {% if tag.id in selected_tag_ids %}checked{% endif %}
+          />
+          {{ tag.name }}
+        </label>
+        {% else %}
+        <p class="text-sm text-muted">No tags yet. Restart the server to seed AI and Technology.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <label for="thumbnail" class="mb-1 block text-sm font-semibold">
+        Thumbnail <span class="font-normal text-muted">(optional)</span>
+      </label>
+      {% if post and post.thumbnail %}
+      <div class="mb-3 overflow-hidden rounded-lg border border-line">
+        <img src="{{ post.thumbnail }}" alt="Current thumbnail" class="max-h-48 w-full object-cover" />
+      </div>
+      <label class="mb-3 flex items-center gap-2 text-sm">
+        <input type="checkbox" name="remove_thumbnail" value="1" class="size-4 rounded border-line text-accent" />
+        Remove current thumbnail
+      </label>
+      {% endif %}
+      <input
+        id="thumbnail"
+        name="thumbnail"
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/webp,image/avif,.avif,.heic,.heif"
+        class="block w-full text-sm text-muted file:mr-3 file:rounded file:border-0 file:bg-accent-mist file:px-3 file:py-2 file:text-sm file:font-semibold file:text-accent-deep"
+      />
+      <p class="mt-1.5 text-xs text-muted">
+        Resized to max {{ thumbnail_max_width }}×{{ thumbnail_max_height }} (plus a card-sized WebP for listings).
+      </p>
+    </div>
+
+    <div>
+      <label for="content" class="mb-1 block text-sm font-semibold">Body</label>
+      <p class="mb-2 text-xs text-muted">
+        Use the toolbar for font size, color, links, lists, and images.
+        Images are resized to max {{ image_max_width }}×{{ image_max_height }} and stored as WebP
+        (AVIF sidecar when available).
+      </p>
+      <textarea id="content" name="content" class="hidden">
+{%- if post -%}{{ post.content }}{%- elif form_content is defined -%}{{ form_content }}{%- endif -%}
+      </textarea>
+      <div id="editor" class="min-h-[22rem] rounded border border-line bg-white"></div>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <label for="status" class="mb-1 block text-sm font-semibold">Status</label>
+        <select
+          id="status"
+          name="status"
+          class="w-full rounded border border-line bg-white px-3 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-wash"
+        >
+          {% set current_status = form_status if form_status is defined else (post.status if post else 'draft') %}
+          {% for option in post_statuses %}
+          <option value="{{ option.value }}" {% if option.value == current_status %}selected{% endif %}>
+            {{ option.label }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="published_at" class="mb-1 block text-sm font-semibold">
+          Publish at <span class="font-normal text-muted">(UTC)</span>
+        </label>
+        <input
+          id="published_at"
+          name="published_at"
+          type="datetime-local"
+          value="{% if form_published_at is defined %}{{ form_published_at }}{% elif post and post.published_at %}{{ post.published_at.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+          class="w-full rounded border border-line bg-white px-3 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-wash"
+        />
+        <p class="mt-1.5 text-xs text-muted">
+          Required for scheduled posts. Auto-filled when you publish now.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-3 pt-2">
+      <button type="submit" class="inline-flex items-center justify-center rounded bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-deep">
+        Save
+      </button>
+      <a href="/admin/articles" class="inline-flex items-center justify-center rounded border border-line px-4 py-2.5 text-sm font-semibold text-ink no-underline transition hover:border-accent hover:text-accent-deep">
+        Cancel
+      </a>
+    </div>
+  </form>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7.6.0/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+(() => {
+  const form = document.getElementById("post-form");
+  const textarea = document.getElementById("content");
+  if (!form || !textarea || !window.tinymce) return;
+
+  tinymce.init({
+    selector: "#editor",
+    base_url: "https://cdn.jsdelivr.net/npm/tinymce@7.6.0",
+    suffix: ".min",
+    height: 420,
+    menubar: false,
+    branding: false,
+    plugins: "lists link image code table autoresize",
+    toolbar:
+      "undo redo | styles fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image | removeformat | code",
+    font_size_formats: "12px 14px 16px 18px 20px 24px 28px 32px 36px",
+    content_style:
+      "body { font-family: Plus Jakarta Sans, system-ui, sans-serif; font-size: 16px; line-height: 1.6; color: #10202a; }",
+    images_upload_handler: (blobInfo) =>
+      new Promise((resolve, reject) => {
+        const body = new FormData();
+        body.append("file", blobInfo.blob(), blobInfo.filename());
+        const csrf =
+          document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ||
+          document.querySelector('input[name="csrf_token"]')?.value ||
+          "";
+        fetch("/admin/uploads", {
+          method: "POST",
+          body,
+          credentials: "same-origin",
+          headers: csrf ? { "X-CSRF-Token": csrf } : {},
+        })
+          .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              throw new Error(data.detail || "Upload failed");
+            }
+            resolve(data.location || data.url);
+          })
+          .catch((err) => reject(err.message || "Upload failed"));
+      }),
+    setup: (editor) => {
+      editor.on("init", () => {
+        editor.setContent(textarea.value || "");
+      });
+    },
+  });
+
+  form.addEventListener("submit", () => {
+    if (window.tinymce) {
+      textarea.value = tinymce.get("editor")?.getContent() || "";
+    }
+  });
+})();
+</script>
+{% endblock %}

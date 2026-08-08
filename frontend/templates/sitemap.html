@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{{ meta_title }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": {{ ("Sitemap — " ~ app_name) | tojson }},
+  "description": {{ meta_description | tojson }},
+  "url": {{ canonical_url | tojson }},
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": {{ app_name | tojson }},
+    "url": {{ (site_url ~ "/") | tojson }}
+  },
+  "inLanguage": "sv"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="hero-grid" aria-labelledby="sitemap-heading">
+  <div class="mx-auto max-w-site px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
+    <p class="text-xs font-bold tracking-[0.28em] text-accent-bright uppercase">Sitemap</p>
+    <h1 id="sitemap-heading" class="mx-auto mt-4 max-w-3xl text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
+      All pages
+    </h1>
+    <p class="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
+      A map of the public pages and articles on {{ app_name }}.
+    </p>
+  </div>
+</section>
+
+<section class="mx-auto max-w-measure px-4 pb-16 sm:px-6 sm:pb-20 lg:px-8">
+  <div class="space-y-10">
+    <div>
+      <h2 class="text-lg font-extrabold tracking-tight text-ink">Pages</h2>
+      <ul class="mt-4 space-y-2 text-base">
+        {% for item in pages %}
+        <li>
+          <a href="{{ item.path }}" class="font-medium text-accent no-underline hover:text-accent-deep">{{ item.path }}</a>
+          <span class="text-muted"> — {{ item.label }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="text-lg font-extrabold tracking-tight text-ink">Articles</h2>
+      {% if posts %}
+      <ul class="mt-4 space-y-2 text-base">
+        {% for post in posts %}
+        <li>
+          <a href="/posts/{{ post.slug }}" class="font-medium text-accent no-underline hover:text-accent-deep">/posts/{{ post.slug }}</a>
+          <span class="text-muted"> — {{ post.title }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="mt-4 text-muted">Inga publicerade artiklar än.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <p class="mt-12 text-sm text-muted">
+    Sökmotorer kan också använda
+    <a href="/sitemap.xml" class="text-accent no-underline hover:text-accent-deep">XML sitemap</a>.
+  </p>
+</section>
+{% endblock %}

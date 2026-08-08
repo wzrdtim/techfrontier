@@ -1,0 +1,23 @@
+{# Shared date formatting for posts. Expects `post`. #}
+{% macro post_date_meta(post, compact=false) -%}
+  {%- set published = post.published_at or post.created_at -%}
+  {%- if compact -%}
+  <time datetime="{{ published.isoformat() }}">{{ published.strftime("%b %d, %Y") }}</time>
+  {%- else -%}
+  <span class="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+    {% if post.published_at %}
+    <span>Publicerad <time datetime="{{ post.published_at.isoformat() }}">{{ post.published_at.strftime("%b %d, %Y") }}</time></span>
+    {% else %}
+    <span>Skapad <time datetime="{{ post.created_at.isoformat() }}">{{ post.created_at.strftime("%b %d, %Y") }}</time></span>
+    {% endif %}
+    {% if post.updated_at and (not post.published_at or post.updated_at.date() != (post.published_at or post.created_at).date()) %}
+    <span aria-hidden="true">·</span>
+    <span>Uppdaterad <time datetime="{{ post.updated_at.isoformat() }}">{{ post.updated_at.strftime("%b %d, %Y") }}</time></span>
+    {% endif %}
+    {% if post.published_at and post.created_at.date() != post.published_at.date() %}
+    <span aria-hidden="true">·</span>
+    <span>Skapat <time datetime="{{ post.created_at.isoformat() }}">{{ post.created_at.strftime("%b %d, %Y") }}</time></span>
+    {% endif %}
+  </span>
+  {%- endif -%}
+{%- endmacro %}

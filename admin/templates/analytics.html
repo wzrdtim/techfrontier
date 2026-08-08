@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics — {{ app_name }}{% endblock %}
+
+{% block content %}
+<section>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Analytics</h1>
+      <p class="mt-1 text-muted">Traffic for the last {{ days }} days.</p>
+    </div>
+    <div class="flex gap-2">
+      {% for option in [7, 30, 90] %}
+      <a
+        href="/admin/analytics?days={{ option }}"
+        class="inline-flex items-center justify-center rounded-lg px-3 py-2 text-sm font-semibold no-underline {% if days == option %}bg-accent-deep text-white{% else %}border border-line bg-white text-ink hover:border-accent{% endif %}"
+      >{{ option }}d</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-muted">Page views</p>
+      <p class="mt-3 text-3xl font-extrabold tracking-tight text-ink">{{ analytics.page_views | intcomma }}</p>
+    </div>
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-muted">Unique visitors</p>
+      <p class="mt-3 text-3xl font-extrabold tracking-tight text-ink">{{ analytics.unique_visitors | intcomma }}</p>
+    </div>
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-muted">Article views</p>
+      <p class="mt-3 text-3xl font-extrabold tracking-tight text-ink">{{ analytics.article_views | intcomma }}</p>
+    </div>
+  </div>
+
+  <div class="mt-10 grid gap-6 lg:grid-cols-2">
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-extrabold tracking-tight">Top articles</h2>
+      {% if analytics.top_articles %}
+      <ul class="mt-4 divide-y divide-line">
+        {% for post, views in analytics.top_articles %}
+        <li class="flex items-center justify-between gap-3 py-3 text-sm">
+          <div class="min-w-0">
+            <a href="/admin/posts/{{ post.id }}/edit" class="font-semibold text-ink no-underline hover:text-accent">{{ post.title }}</a>
+            <p class="mt-0.5 text-xs text-muted">{{ post.status_label }}</p>
+          </div>
+          <span class="shrink-0 tabular-nums text-ink-soft">{{ views | intcomma }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="mt-4 text-sm text-muted">No article views in this period.</p>
+      {% endif %}
+    </div>
+
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-extrabold tracking-tight">Traffic sources</h2>
+      {% if analytics.traffic_sources %}
+      <ul class="mt-4 space-y-3">
+        {% set max_source = analytics.traffic_sources[0].count if analytics.traffic_sources else 1 %}
+        {% for item in analytics.traffic_sources %}
+        <li>
+          <div class="mb-1 flex items-center justify-between gap-3 text-sm">
+            <span class="font-semibold capitalize text-ink">{{ item.label }}</span>
+            <span class="tabular-nums text-ink-soft">{{ item.count | intcomma }}</span>
+          </div>
+          <div class="h-2 overflow-hidden rounded-full bg-[#eef2f1]">
+            <div class="h-full rounded-full bg-accent" style="width: {{ ((item.count / max_source) * 100) | round }}%"></div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="mt-4 text-sm text-muted">No source data yet.</p>
+      {% endif %}
+    </div>
+
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-extrabold tracking-tight">Devices</h2>
+      {% if analytics.devices %}
+      <ul class="mt-4 divide-y divide-line">
+        {% for item in analytics.devices %}
+        <li class="flex items-center justify-between gap-3 py-3 text-sm">
+          <span class="font-semibold text-ink">{{ item.label }}</span>
+          <span class="tabular-nums text-ink-soft">{{ item.count | intcomma }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="mt-4 text-sm text-muted">No device data yet.</p>
+      {% endif %}
+    </div>
+
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <h2 class="text-lg font-extrabold tracking-tight">Countries</h2>
+      {% if analytics.countries %}
+      <ul class="mt-4 divide-y divide-line">
+        {% for item in analytics.countries %}
+        <li class="flex items-center justify-between gap-3 py-3 text-sm">
+          <span class="font-semibold text-ink">{{ item.label }}</span>
+          <span class="tabular-nums text-ink-soft">{{ item.count | intcomma }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      <p class="mt-3 text-xs text-muted">Country uses edge headers (Cloudflare, Vercel, CloudFront) when available.</p>
+      {% else %}
+      <p class="mt-4 text-sm text-muted">No country data yet.</p>
+      {% endif %}
+    </div>
+
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm lg:col-span-2">
+      <h2 class="text-lg font-extrabold tracking-tight">Top referrers</h2>
+      {% if analytics.referrers %}
+      <div class="mt-4 overflow-hidden rounded-xl border border-line">
+        <table class="w-full border-collapse text-left text-sm">
+          <thead class="border-b border-line bg-[#f8fbfa] text-xs font-bold uppercase tracking-[0.14em] text-muted">
+            <tr>
+              <th class="px-4 py-3 font-bold">Referrer</th>
+              <th class="px-4 py-3 font-bold">Views</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line">
+            {% for item in analytics.referrers %}
+            <tr>
+              <td class="px-4 py-3 font-medium text-ink">{{ item.label }}</td>
+              <td class="px-4 py-3 tabular-nums text-ink-soft">{{ item.count | intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="mt-4 text-sm text-muted">No external referrers yet (direct visits are excluded here).</p>
+      {% endif %}
+    </div>
+
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm lg:col-span-2">
+      <h2 class="text-lg font-extrabold tracking-tight">Daily page views</h2>
+      {% if analytics.daily_views %}
+      {% set day_counts = analytics.daily_views | map(attribute='count') | list %}
+      {% set max_day = day_counts | max %}
+      <div class="mt-5 flex h-40 items-end gap-1">
+        {% for item in analytics.daily_views %}
+        <div class="group relative flex h-full min-w-0 flex-1 flex-col justify-end">
+          <div
+            class="w-full rounded-t bg-accent/80 transition group-hover:bg-accent"
+            style="height: {{ [((item.count / max_day) * 100) | round, 4] | max }}%"
+            title="{{ item.label }}: {{ item.count }}"
+          ></div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-2 flex justify-between text-xs text-muted">
+        <span>{{ analytics.daily_views[0].label }}</span>
+        <span>{{ analytics.daily_views[-1].label }}</span>
+      </div>
+      {% else %}
+      <p class="mt-4 text-sm text-muted">No daily traffic yet. Browse the public site to start collecting views.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

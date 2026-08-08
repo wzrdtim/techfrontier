@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — {{ app_name }}{% endblock %}
+
+{% block content %}
+<section>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Admin Dashboard</h1>
+      <p class="mt-1 text-muted">Publishing and traffic overview for the last 30 days.</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <a
+        href="/admin/analytics"
+        class="inline-flex items-center justify-center rounded-lg border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink no-underline transition hover:border-accent"
+      >
+        Analytics
+      </a>
+      <a
+        href="/admin/posts/new"
+        class="inline-flex items-center justify-center rounded-lg bg-accent-deep px-4 py-2.5 text-sm font-semibold text-white no-underline transition hover:bg-accent"
+      >
+        New article
+      </a>
+    </div>
+  </div>
+
+  <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <a href="/admin/articles" class="rounded-2xl border border-line bg-white p-5 no-underline shadow-sm transition hover:border-accent">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-muted">Articles</p>
+      <p class="mt-3 text-3xl font-extrabold tracking-tight text-ink">{{ stats.articles | intcomma }}</p>
+    </a>
+    <a href="/admin/analytics" class="rounded-2xl border border-line bg-white p-5 no-underline shadow-sm transition hover:border-accent">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-muted">Page views</p>
+      <p class="mt-3 text-3xl font-extrabold tracking-tight text-ink">{{ stats.page_views | intcomma }}</p>
+    </a>
+    <a href="/admin/analytics" class="rounded-2xl border border-line bg-white p-5 no-underline shadow-sm transition hover:border-accent">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-muted">Unique visitors</p>
+      <p class="mt-3 text-3xl font-extrabold tracking-tight text-ink">{{ stats.unique_visitors | intcomma }}</p>
+    </a>
+    <a href="/admin/analytics" class="rounded-2xl border border-line bg-white p-5 no-underline shadow-sm transition hover:border-accent">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-muted">Article views</p>
+      <p class="mt-3 text-3xl font-extrabold tracking-tight text-ink">{{ stats.article_views | intcomma }}</p>
+    </a>
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-muted">Post clicks</p>
+      <p class="mt-3 text-3xl font-extrabold tracking-tight text-ink">{{ stats.views | intcomma }}</p>
+      <p class="mt-1 text-xs text-muted">Lifetimeed in each article’s view counter</p>
+    </div>
+    <a href="/admin/subscribers" class="rounded-2xl border border-line bg-white p-5 no-underline shadow-sm transition hover:border-accent">
+      <p class="text-xs font-bold uppercase tracking-[0.18em] text-muted">Subscribers</p>
+      <p class="mt-3 text-3xl font-extrabold tracking-tight text-ink">{{ stats.subscribers | intcomma }}</p>
+    </a>
+  </div>
+
+  <div class="mt-10 grid gap-6 lg:grid-cols-2">
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <h2 class="text-lg font-extrabold tracking-tight">Top articles</h2>
+        <a href="/admin/analytics" class="text-sm font-semibold text-accent no-underline hover:text-accent-deep">Details</a>
+      </div>
+      {% if analytics.top_articles %}
+      <ul class="divide-y divide-line">
+        {% for post, views in analytics.top_articles[:5] %}
+        <li class="flex items-center justify-between gap-3 py-3 text-sm">
+          <a href="/admin/posts/{{ post.id }}/edit" class="min-w-0 truncate font-semibold text-ink no-underline hover:text-accent">{{ post.title }}</a>
+          <span class="shrink-0 tabular-nums text-ink-soft">{{ views | intcomma }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-sm text-muted">No article traffic yet.</p>
+      {% endif %}
+    </div>
+
+    <div class="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <h2 class="text-lg font-extrabold tracking-tight">Traffic sources</h2>
+        <a href="/admin/analytics" class="text-sm font-semibold text-accent no-underline hover:text-accent-deep">Details</a>
+      </div>
+      {% if analytics.traffic_sources %}
+      <ul class="divide-y divide-line">
+        {% for item in analytics.traffic_sources %}
+        <li class="flex items-center justify-between gap-3 py-3 text-sm">
+          <span class="font-semibold capitalize text-ink">{{ item.label }}</span>
+          <span class="tabular-nums text-ink-soft">{{ item.count | intcomma }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-sm text-muted">No traffic data yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mt-10">
+    <div class="mb-4 flex items-center justify-between gap-3">
+      <h2 class="text-xl font-extrabold tracking-tight">Recent articles</h2>
+      <a href="/admin/articles" class="text-sm font-semibold text-accent no-underline hover:text-accent-deep">View all</a>
+    </div>
+
+    {% if recent_posts %}
+    <div class="overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+      <table class="w-full min-w-[36rem] border-collapse text-left text-sm">
+        <thead class="border-b border-line bg-[#f8fbfa] text-xs font-bold uppercase tracking-[0.14em] text-muted">
+          <tr>
+            <th class="px-4 py-3 font-bold">Article</th>
+            <th class="px-4 py-3 font-bold">Views</th>
+            <th class="px-4 py-3 font-bold">Status</th>
+            <th class="px-4 py-3 font-bold"><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-line">
+          {% for post in recent_posts %}
+          <tr class="align-middle">
+            <td class="px-4 py-3.5">
+              <a href="/admin/posts/{{ post.id }}/edit" class="font-semibold text-ink no-underline hover:text-accent">{{ post.title }}</a>
+              <p class="mt-0.5 text-xs text-muted">
+                Updated {{ post.updated_at.strftime("%b %d, %Y") }}
+              </p>
+            </td>
+            <td class="px-4 py-3.5 tabular-nums text-ink-soft">{{ post.view_count | intcomma }}</td>
+            <td class="px-4 py-3.5">
+              <span class="inline-flex rounded-md bg-accent-mist px-2 py-1 text-xs font-bold uppercase tracking-wide text-accent-deep">
+                {{ post.status_label }}
+              </span>
+            </td>
+            <td class="px-4 py-3.5 text-right">
+              <a href="/admin/posts/{{ post.id }}/edit" class="text-sm font-semibold text-accent no-underline hover:text-accent-deep">Edit</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="rounded-2xl border border-dashed border-line bg-white px-6 py-12 text-center">
+      <p class="text-muted">No articles yet.</p>
+      <a href="/admin/posts/new" class="mt-3 inline-flex text-accent no-underline hover:text-accent-deep">Create the first one</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

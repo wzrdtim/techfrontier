@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% from "macros/dates.html" import post_date_meta %}
+{% from "macros/images.html" import post_cover_image %}
+
+{% block title %}{{ meta_title }}{% endblock %}
+
+{% block content %}
+<section class="hero-grid" aria-labelledby="search-heading">
+  <div class="mx-auto max-w-site px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
+    <p class="text-xs font-bold tracking-[0.28em] text-accent-bright uppercase">Sök</p>
+    <h1 id="search-heading" class="mx-auto mt-4 max-w-3xl text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
+      Results for “{{ query }}”
+    </h1>
+    <p class="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
+      {% if total == 1 %}
+        1 article matched your search.
+      {% else %}
+        {{ total }} articles matched your search.
+      {% endif %}
+    </p>
+
+    <form action="/search" method="get" role="search" class="mx-auto mt-8 max-w-xl">
+      <label for="search-q" class="sr-only">Sök artiklar</label>
+      <div class="flex gap-2">
+        <input
+          id="search-q"
+          name="q"
+          type="search"
+          value="{{ query }}"
+          placeholder="Sök artiklar"
+          maxlength="200"
+          required
+          class="w-full rounded-lg border border-transparent bg-surface px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent-wash"
+        />
+        <button
+          type="submit"
+          class="shrink-0 rounded-lg bg-accent-deep px-5 py-3 text-sm font-semibold text-white transition hover:bg-accent"
+        >
+          Sök
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="bg-surface" aria-label="Search results">
+  <div class="mx-auto w-full max-w-site px-4 py-14 sm:px-6 lg:px-8">
+    {% if posts %}
+    <div class="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+      {% for post in posts %}
+      {% set cover = (post.id % 4) + 1 %}
+      <article class="group">
+        <a href="/posts/{{ post.slug }}" class="block no-underline" aria-label="Read {{ post.title }}">
+          <div class="relative overflow-hidden rounded-xl">
+            <div class="absolute inset-x-0 top-0 z-10 h-2.5 bg-accent-deep" aria-hidden="true"></div>
+            <div class="relative aspect-[16/10] {% if not post.thumbnail %}post-cover-{{ cover }}{% endif %}">
+              {{ post_cover_image(post.thumbnail, sizes="(min-width: 1024px) 22rem, (min-width: 640px) 45vw, 92vw") }}
+            </div>
+            <span class="absolute bottom-0 right-0 z-10 flex h-9 w-9 items-center justify-center rounded-tl-md bg-accent-bright text-lg font-bold leading-none text-white" aria-hidden="true">”</span>
+          </div>
+        </a>
+        <div class="mt-4 space-y-3">
+          <div class="inline-flex rounded bg-accent-mist px-2 py-1 text-[11px] font-bold tracking-wide text-accent-deep uppercase">
+            {{ post_date_meta(post, compact=true) }}
+          </div>
+          <h2 class="text-xl font-bold leading-snug tracking-tight text-ink">
+            <a href="/posts/{{ post.slug }}" class="text-ink no-underline hover:text-accent">{{ post.title }}</a>
+          </h2>
+          <p class="line-clamp-3 text-sm leading-relaxed text-ink-soft">{{ post.excerpt or "" }}</p>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    {% if total_pages > 1 %}
+    <nav class="mt-14 flex items-center justify-center gap-2" aria-label="Pagination">
+      {% for item in page_items %}
+        {% if item == "…" %}
+          <span class="px-1 text-sm text-muted">…</span>
+        {% elif item == page %}
+          <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-accent-deep text-sm font-semibold text-white" aria-current="page">{{ item }}</span>
+        {% else %}
+          <a
+            href="/search?q={{ query | urlencode }}&page={{ item }}"
+            class="inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-ink no-underline transition hover:bg-accent-mist"
+            aria-label="Page {{ item }}"
+          >{{ item }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page < total_pages %}
+      <a
+        href="/search?q={{ query | urlencode }}&page={{ page + 1 }}"
+        class="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-ink no-underline transition hover:bg-accent-mist"
+        aria-label="Next page"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
+      </a>
+      {% endif %}
+    </nav>
+    {% endif %}
+    {% else %}
+    <div class="rounded-2xl border border-dashed border-line bg-paper-soft px-6 py-16 text-center">
+      <p class="text-lg text-muted">Inga artiklar matchade “{{ query }}”.</p>
+      <a href="/#articles" class="mt-3 inline-flex text-accent no-underline hover:text-accent-deep">Sök bland alla artiklar</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

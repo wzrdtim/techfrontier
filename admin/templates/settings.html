@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Settings — {{ app_name }}{% endblock %}
+
+{% block content %}
+<section>
+  <div>
+    <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Settings</h1>
+    <p class="mt-1 text-muted">Site and admin configuration.</p>
+  </div>
+
+  <div class="mt-8 grid gap-4 lg:grid-cols-2">
+    <div class="rounded-2xl border border-line bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-extrabold tracking-tight">Site</h2>
+      <dl class="mt-4 space-y-3 text-sm">
+        <div>
+          <dt class="font-semibold text-ink">Name</dt>
+          <dd class="text-ink-soft">{{ settings_view.app_name }}</dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-ink">Public URL</dt>
+          <dd class="break-all text-ink-soft">{{ settings_view.site_url }}</dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-ink">Image max size</dt>
+          <dd class="text-ink-soft">{{ settings_view.image_max_width }}×{{ settings_view.image_max_height }}px</dd>
+        </div>
+      </dl>
+      <p class="mt-5 text-xs text-muted">Change these values in your <code class="rounded bg-[#eef2f1] px-1.5 py-0.5">.env</code> file and restart the server.</p>
+    </div>
+
+    <div class="rounded-2xl border border-line bg-white p-6 shadow-sm">
+      <h2 class="text-lg font-extrabold tracking-tight">Admin account</h2>
+      <dl class="mt-4 space-y-3 text-sm">
+        <div>
+          <dt class="font-semibold text-ink">Username</dt>
+          <dd class="text-ink-soft">{{ admin.username }}</dd>
+        </div>
+        <div>
+          <dt class="font-semibold text-ink">Email</dt>
+          <dd class="text-ink-soft">{{ admin.email }}</dd>
+        </div>
+      </dl>
+      <p class="mt-5 text-xs text-muted">Credentials are managed via <code class="rounded bg-[#eef2f1] px-1.5 py-0.5">ADMIN_USERNAME</code>, <code class="rounded bg-[#eef2f1] px-1.5 py-0.5">ADMIN_EMAIL</code>, and <code class="rounded bg-[#eef2f1] px-1.5 py-0.5">ADMIN_PASSWORD</code>.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% macro post_cover_image(url, alt="", priority=false, sizes="(min-width: 768px) 34rem, 92vw") -%}
+{%- if url -%}
+<img
+  src="{{ url | thumbnail_card }}"
+  srcset="{{ url | thumbnail_srcset }}"
+  sizes="{{ sizes }}"
+  alt="{{ alt }}"
+  width="640"
+  height="400"
+  class="absolute inset-0 h-full w-full object-cover"
+  decoding="async"
+  {% if priority %}fetchpriority="high" loading="eager"{% else %}loading="lazy"{% endif %}
+/>
+{%- endif -%}
+{%- endmacro %}

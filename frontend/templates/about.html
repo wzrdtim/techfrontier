@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{{ meta_title }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": {{ ("Om — " ~ app_name) | tojson }},
+  "description": {{ meta_description | tojson }},
+  "url": {{ canonical_url | tojson }},
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": {{ app_name | tojson }},
+    "url": {{ (site_url ~ "/") | tojson }}
+  },
+  "inLanguage": "sv"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="hero-grid" aria-labelledby="about-heading">
+  <div class="mx-auto max-w-site px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
+    <p class="text-xs font-bold tracking-[0.28em] text-accent-bright uppercase">Om mig</p>
+    <h1 id="about-heading" class="mx-auto mt-4 max-w-3xl text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
+      Att förstå tekniken bakom framtiden
+    </h1>
+    <p class="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
+       Om AI, innovation och tekniken som förändrar hur vi lever, arbetar och bygger.
+    </p>
+  </div>
+</section>
+
+<section class="mx-auto max-w-measure px-4 py-12 sm:px-6 lg:px-8">
+  <div class="space-y-5 text-base leading-relaxed text-ink-soft sm:text-lg">
+    <p>Jag heter Tim och står bakom {{ app_name }}.</p>
+    <p>
+      Jag har alltid haft ett starkt intresse för teknik och för att förstå hur saker fungerar. Jag är en självlärd mjukvaruutvecklare och har lärt mig mycket genom att själv bygga, experimentera och lösa problem längs vägen. 
+    </p>
+    <p>
+      Det intresset har sträckt sig långt utanför programmering. Jag tycker om att förstå hur ny teknik fungerar, varför vissa idéer lyckas medan andra misslyckas och vilka tekniska förändringar som faktiskt kan få betydelse på längre sikt. 
+    </p>
+    <p>
+      Ett exempel är mitt eget campervan-projekt. Jag byggde om en husbil för att kunna bo och resa i den på heltid. Det blev ett projekt som kombinerade elektronik, programmering, energi, batterier, solceller och praktiskt byggande. 
+    </p>
+    <p>
+      Det är också mycket av det som driver mitt intresse för teknologi. Jag tycker om att lära mig nya saker, förstå hur olika delar hänger ihop och sedan faktiskt bygga eller testa något själv. 
+    </p>
+
+    <h2 class="pt-4 text-2xl font-extrabold tracking-tight text-ink">Varför den här bloggen?</h2>
+    <p>
+      Teknikvärlden utvecklas i en enorm takt. AI, datorkraft, robotik, halvledare, energi och andra teknologier förändrar redan hur vi arbetar och lever. 
+    </p>
+    <p>Samtidigt är det lätt att drunkna i nyheter, hype och kortsiktiga trender.</p>
+    <p>Med den här bloggen vill jag försöka ta ett steg tillbaka.</p>
+    <p>
+      Jag skriver om AI och teknologi med fokus på idéer, företag och utvecklingar som jag tycker är värda att förstå på djupet. Målet är inte att förutsäga framtiden, utan att försöka förstå vart utvecklingen är på väg och vad som faktiskt kan spela roll. 
+    </p>
+    <p>
+      Jag lär mig ständigt och kommer definitivt att ha fel ibland. Det är en del av processen. 
+    </p>
+    <p>
+      Det här är helt enkelt en plats där jag kan samla det jag lär mig, undersöka idéer som fascinerar mig och dela mina tankar med andra som är lika nyfikna på vad som kommer härnäst. 
+    </p>
+    <p class="font-semibold text-ink">Tydliga tankar. Ny teknik. Idéer värda att förstå.</p>
+  </div>
+
+  <p class="mt-10">
+    <a href="/#articles" class="inline-flex items-center gap-1.5 font-semibold text-accent no-underline hover:text-accent-deep">
+      Bläddra bland artiklar <span aria-hidden="true">&gt;</span>
+    </a>
+  </p>
+</section>
+{% endblock %}

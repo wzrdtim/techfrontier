@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}{{ meta_title }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": {{ ("Privacy Policy — " ~ app_name) | tojson }},
+  "description": {{ meta_description | tojson }},
+  "url": {{ canonical_url | tojson }},
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": {{ app_name | tojson }},
+    "url": {{ (site_url ~ "/") | tojson }}
+  },
+  "inLanguage": "sv"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="hero-grid" aria-labelledby="privacy-heading">
+  <div class="mx-auto max-w-site px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-8">
+    <p class="text-xs font-bold tracking-[0.28em] text-accent-bright uppercase">Legal</p>
+    <h1 id="privacy-heading" class="mx-auto mt-4 max-w-3xl text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
+      Privacy Policy
+    </h1>
+    <p class="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
+      How {{ app_name }} handles the information you share with us — including newsletter signups and contact messages.
+    </p>
+  </div>
+</section>
+
+<section class="mx-auto max-w-measure px-4 py-12 sm:px-6 lg:px-8">
+  <div class="space-y-5 text-base leading-relaxed text-ink-soft sm:text-lg">
+    <p>
+      When you subscribe to the {{ app_name }} newsletter or send a contact message, we store the details you provide so we can respond and deliver updates you asked for.
+    </p>
+    <p>
+      We do not sell your personal information. Analytics on this site focus on aggregated traffic patterns such as page views and referrers.
+    </p>
+    <p>
+      You can ask us to remove your email or contact record by writing through the contact form. We may update this policy as the site evolves.
+    </p>
+  </div>
+  <p class="mt-10">
+    <a href="/#articles" class="inline-flex items-center gap-1.5 font-semibold text-accent no-underline hover:text-accent-deep">
+      Bläddra bland artiklar <span aria-hidden="true">&gt;</span>
+    </a>
+  </p>
+</section>
+{% endblock %}

@@ -1,0 +1,224 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Self-hosted Plus Jakarta Sans — avoids Google Fonts critical-request chain */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("/static/fonts/plus-jakarta-sans-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("/static/fonts/plus-jakarta-sans-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    /* Airy blue-slate light theme — pairs with the dark palette */
+    --c-ink: 22 36 52;
+    --c-ink-soft: 70 88 108;
+    --c-muted: 110 126 144;
+    --c-paper: 252 253 255;
+    --c-paper-soft: 241 245 250;
+    --c-paper-deep: 228 236 245;
+    --c-surface: 255 255 255;
+    --c-surface-muted: 234 240 247;
+    --c-line: 40 70 100;
+    --c-line-a: 0.12;
+    --c-accent: 14 118 178;
+    --c-accent-deep: 10 88 138;
+    --c-accent-bright: 28 158 210;
+    --c-accent-mist: 226 241 250;
+    --c-danger: 168 58 48;
+    --hero-circuit-bg: #f2f6fa;
+    --hero-circuit-opacity: 0.22;
+    --hero-circuit-filter: saturate(0.55) brightness(0.95);
+    --hero-circuit-size: min(52rem, 88%);
+    --hero-circuit-blend: multiply;
+    --shadow-card: 0 18px 48px -26px rgba(22, 48, 78, 0.22);
+    --theme-meta: #0e76b2;
+    --footer-bg: #15202c;
+    --footer-bg-top: #1b2a3a;
+    --footer-bg-bottom: #101820;
+    --footer-glow: rgba(28, 158, 210, 0.14);
+    --footer-link: #7ec4e8;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    /* Cool blue-slate stack that mirrors the accent family */
+    --c-ink: 232 238 245;
+    --c-ink-soft: 168 182 198;
+    --c-muted: 122 136 154;
+    --c-paper: 10 14 20;
+    --c-paper-soft: 15 21 30;
+    --c-paper-deep: 22 30 42;
+    --c-surface: 18 26 36;
+    --c-surface-muted: 28 38 52;
+    --c-line: 148 176 210;
+    --c-line-a: 0.16;
+    /* Same roles as light: deep = solid controls, accent = links/hover lift */
+    --c-accent: 86 178 230;
+    --c-accent-deep: 36 132 188;
+    --c-accent-bright: 120 198 240;
+    --c-accent-mist: 22 48 70;
+    --c-danger: 232 140 120;
+    --hero-circuit-bg: #0f1620;
+    --hero-circuit-opacity: 0.2;
+    --hero-circuit-filter: invert(1) brightness(1.2) saturate(0.35)
+      drop-shadow(0 0 28px rgba(86, 178, 230, 0.12));
+    --hero-circuit-size: min(52rem, 88%);
+    --hero-circuit-blend: soft-light;
+    --shadow-card: 0 20px 48px -28px rgba(0, 0, 0, 0.7);
+    --theme-meta: #0f1620;
+    --footer-bg: #0c121a;
+    --footer-bg-top: #121a26;
+    --footer-bg-bottom: #080c12;
+    --footer-glow: rgba(86, 178, 230, 0.14);
+    --footer-link: #7ec4e8;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  a {
+    @apply underline-offset-[0.18em];
+  }
+}
+
+@layer components {
+  .hero-grid {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background-color: var(--hero-circuit-bg);
+  }
+
+  .hero-grid::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    /* Circuit art is a luminance mask (~3KB WebP) instead of a 130KB PNG */
+    background-color: rgb(60, 60, 59);
+    -webkit-mask-image: url("/static/img/circuit-overlay-mask.webp");
+    mask-image: url("/static/img/circuit-overlay-mask.webp");
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center 42%;
+    mask-position: center 42%;
+    -webkit-mask-size: var(--hero-circuit-size) auto;
+    mask-size: var(--hero-circuit-size) auto;
+    mask-mode: luminance;
+    -webkit-mask-source-type: luminance;
+    opacity: var(--hero-circuit-opacity);
+    filter: var(--hero-circuit-filter);
+    mix-blend-mode: var(--hero-circuit-blend);
+  }
+
+  .nav-link {
+    @apply relative pb-1 text-sm font-medium text-ink-soft no-underline transition hover:text-ink;
+  }
+
+  .nav-link.is-active {
+    @apply text-ink;
+  }
+
+  .nav-link.is-active::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -0.35rem;
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 9999px;
+    background: rgb(var(--c-accent-bright));
+    transform: translateX(-50%);
+    box-shadow:
+      -0.55rem 0 0 rgb(var(--c-accent-bright)),
+      0.55rem 0 0 rgb(var(--c-accent-bright)),
+      -1.1rem 0 0 rgb(var(--c-accent-bright)),
+      1.1rem 0 0 rgb(var(--c-accent-bright));
+  }
+
+  .theme-toggle {
+    @apply inline-flex size-10 items-center justify-center rounded-md border border-line text-ink transition hover:border-accent hover:text-accent;
+  }
+
+  .theme-toggle [data-theme-icon="sun"],
+  .theme-toggle [data-theme-icon="moon"] {
+    display: none;
+  }
+
+  html:not(.dark) .theme-toggle [data-theme-icon="moon"] {
+    display: block;
+  }
+
+  html.dark .theme-toggle [data-theme-icon="sun"] {
+    display: block;
+  }
+
+  .site-footer {
+    background-color: var(--footer-bg);
+    background-image:
+      radial-gradient(ellipse at 20% 0%, var(--footer-glow), transparent 55%),
+      linear-gradient(180deg, var(--footer-bg-top) 0%, var(--footer-bg) 40%, var(--footer-bg-bottom) 100%);
+  }
+
+  .site-footer-link {
+    color: var(--footer-link);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .site-footer-link:hover {
+    color: #fff;
+  }
+
+  .post-cover-1 {
+    background: linear-gradient(135deg, #0c6ea8 0%, #1e3a5f 55%, #0f172a 100%);
+  }
+
+  .post-cover-2 {
+    background: linear-gradient(135deg, #0e7490 0%, #164e63 50%, #1e293b 100%);
+  }
+
+  .post-cover-3 {
+    background: linear-gradient(145deg, #0369a1 0%, #1d4ed8 45%, #312e81 100%);
+  }
+
+  .post-cover-4 {
+    background: linear-gradient(140deg, #0284c7 0%, #0c6ea8 40%, #1e3a5f 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise {
+    animation: none !important;
+  }
+
+  body {
+    transition: none;
+  }
+}

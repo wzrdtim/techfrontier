@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} — {{ app_name }}{% endblock %}
+
+{% block content %}
+<section>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{{ page_title }}</h1>
+      <p class="mt-1 text-muted">{{ lead }}</p>
+    </div>
+  </div>
+
+  {% if show_create %}
+  <form method="post" action="/admin/tags" class="mt-8 flex flex-col gap-3 rounded-2xl border border-line bg-white p-5 shadow-sm sm:flex-row sm:items-end">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+    <div class="min-w-0 flex-1">
+      <label for="name" class="mb-1 block text-sm font-semibold">New tag</label>
+      <input
+        id="name"
+        name="name"
+        type="text"
+        required
+        maxlength="50"
+        placeholder="e.g. Infrastructure"
+        class="w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent-wash"
+      />
+    </div>
+    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-accent-deep px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent">
+      Add tag
+    </button>
+  </form>
+  {% if error %}
+  <p class="mt-3 text-sm text-danger">{{ error }}</p>
+  {% endif %}
+  {% endif %}
+
+  {% if tags %}
+  <div class="mt-8 overflow-hidden rounded-2xl border border-line bg-white shadow-sm">
+    <table class="w-full border-collapse text-left text-sm">
+      <thead class="border-b border-line bg-[#f8fbfa] text-xs font-bold uppercase tracking-[0.14em] text-muted">
+        <tr>
+          <th class="px-4 py-3 font-bold">Name</th>
+          <th class="px-4 py-3 font-bold">Slug</th>
+          <th class="px-4 py-3 font-bold">Articles</th>
+          {% if show_create %}
+          <th class="px-4 py-3 font-bold"><span class="sr-only">Actions</span></th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-line">
+        {% for tag, count in tags %}
+        <tr>
+          <td class="px-4 py-3.5 font-semibold">{{ tag.name }}</td>
+          <td class="px-4 py-3.5 text-ink-soft">{{ tag.slug }}</td>
+          <td class="px-4 py-3.5 tabular-nums text-ink-soft">{{ count | intcomma }}</td>
+          {% if show_create %}
+          <td class="px-4 py-3.5 text-right">
+            <form method="post" action="/admin/tags/{{ tag.id }}/delete" onsubmit="return confirm('Delete this tag?');" class="inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+              <button type="submit" class="text-sm font-semibold text-danger">Delete</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="mt-10 text-muted">No tags yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
