@@ -105,6 +105,22 @@ source .venv/bin/activate
 pytest
 ```
 
+## Deploy on Render
+
+This repo includes a [Render Blueprint](https://render.com/docs/infrastructure-as-code) at `render.yaml` (free web service in Frankfurt, linked to Postgres `postgres-tf`).
+
+1. Push to GitHub (already at [wzrdtim/techfrontier](https://github.com/wzrdtim/techfrontier)).
+2. Open [Dashboard → New → Blueprint](https://dashboard.render.com/select-repo?type=blueprint), or create a Web Service from the repo with the build/start commands in `render.yaml`.
+3. Set `ADMIN_PASSWORD` (and confirm `DATABASE_URL` points at your Render Postgres).
+4. After deploy, open the `*.onrender.com` URL from the dashboard. Set `SITE_URL` to that HTTPS URL (or your custom domain), then redeploy.
+5. Sign in at `/admin` with username `admin` and your password.
+
+Notes:
+
+- Free web services sleep after idle time (first request can be slow).
+- Uploads are ephemeral on the free plan (lost on redeploy); use a paid disk or external storage for production media.
+- Optional: set `SMTP_*` in the Render dashboard to email contact form messages to `ADMIN_EMAIL`.
+
 ## Environment variables
 
 | Variable | Description |

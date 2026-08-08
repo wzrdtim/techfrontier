@@ -106,6 +106,11 @@ app.include_router(newsletter.router, prefix="/api")
 app.include_router(admin.router)
 
 
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
 @app.middleware("http")
 async def track_page_views(request: Request, call_next):
     response = await call_next(request)

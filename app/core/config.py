@@ -1,6 +1,16 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _normalize_database_url(url: str) -> str:
+    """Render (and others) provide postgres://; SQLAlchemy+psycopg needs postgresql+psycopg://."""
+    value = url.strip()
+    for prefix in ("postgres://", "postgresql://"):
+        if value.startswith(prefix):
+            return "postgresql+psycopg://" + value[len(prefix) :]
+    return value
 
 
 class Settings(BaseSettings):
@@ -44,6 +54,13 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = ""
     smtp_use_tls: bool = True
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value: object) -> object:
+        if isinstance(value, str) and value:
+            return _normalize_database_url(value)
+        return value
 
     @property
     def cookie_secure(self) -> bool:

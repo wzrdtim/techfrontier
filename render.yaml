@@ -1,0 +1,44 @@
+# Render Blueprint — https://render.com/docs/infrastructure-as-code
+#
+# This project already has a Postgres instance named `postgres-tf` in the
+# Production environment. The web service below links to that database.
+# Prefer creating/updating via the Render CLI or Dashboard if the DB exists.
+
+services:
+  - type: web
+    name: techfrontier
+    runtime: python
+    plan: free
+    region: frankfurt
+    repo: https://github.com/wzrdtim/techfrontier
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    # Free tier has no preDeployCommand — run migrations on boot instead
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postgres-tf
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "false"
+      - key: APP_NAME
+        value: Techfrontier
+      - key: ADMIN_EMAIL
+        value: admin@techfrontier.se
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false # set a strong password in the Render Dashboard
+      - key: SITE_URL
+        value: https://techfrontier.onrender.com
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
