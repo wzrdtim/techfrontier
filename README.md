@@ -115,6 +115,11 @@ pytest
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Token lifetime |
 | `APP_NAME` | Site name shown in templates |
 | `DEBUG` | FastAPI debug flag |
-| `ADMIN_EMAIL` | Seeded admin email |
+| `ADMIN_EMAIL` | Admin account + contact form recipient |
 | `ADMIN_USERNAME` | Seeded admin username |
 | `ADMIN_PASSWORD` | Seeded admin password |
+| `SMTP_HOST` | Optional SMTP host (enables email delivery of contact messages) |
+| `SMTP_PORT` | SMTP port (default `587`) |
+| `SMTP_USER` / `SMTP_PASSWORD` | SMTP credentials |
+| `SMTP_FROM` | From address (defaults to `ADMIN_EMAIL`) |
+| `SMTP_USE_TLS` | Use STARTTLS (default `true`) |

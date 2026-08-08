@@ -22,6 +22,7 @@ from app.core.content import render_content_html
 from app.core.database import get_db
 from app.core.exceptions import AdminLoginRequired
 from app.core.images import thumbnail_card_url, thumbnail_srcset
+from app.core.mail import notify_admin_of_contact
 from app.core.seo import absolute_url, default_meta, truncate_meta
 from app.services.analytics_service import (
     VISITOR_COOKIE_MAX_AGE,
@@ -94,6 +95,7 @@ templates.env.globals["render_content_html"] = render_content_html
 templates.env.globals["absolute_url"] = absolute_url
 templates.env.globals["site_url"] = settings.site_url.rstrip("/")
 templates.env.globals["site_name"] = settings.app_name
+templates.env.globals["contact_email"] = settings.admin_email
 templates.env.filters["thumbnail_srcset"] = thumbnail_srcset
 templates.env.filters["thumbnail_card"] = thumbnail_card_url
 templates.env.filters["plain_excerpt"] = plain_excerpt
@@ -447,6 +449,11 @@ def contact_submit(
     ContactService.create(
         db,
         email=email,
+        subject=subject,
+        body=body,
+    )
+    notify_admin_of_contact(
+        sender_email=email,
         subject=subject,
         body=body,
     )
