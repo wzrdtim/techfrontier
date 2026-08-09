@@ -54,6 +54,13 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from: str = ""
     smtp_use_tls: bool = True
+    # Cloudflare R2 (S3-compatible). When configured, uploads go to R2 instead of local disk.
+    r2_account_id: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_bucket_name: str = ""
+    r2_endpoint_url: str = ""
+    image_public_base_url: str = ""  # e.g. https://images.techfrontier.se
 
     @field_validator("database_url", mode="before")
     @classmethod
@@ -69,6 +76,27 @@ class Settings(BaseSettings):
     @property
     def mail_from(self) -> str:
         return (self.smtp_from or self.admin_email).strip()
+
+    @property
+    def r2_configured(self) -> bool:
+        return bool(
+            self.r2_account_id.strip()
+            and self.r2_access_key_id.strip()
+            and self.r2_secret_access_key.strip()
+            and self.r2_bucket_name.strip()
+            and self.image_public_base_url.strip()
+        )
+
+    @property
+    def r2_endpoint(self) -> str:
+        if self.r2_endpoint_url.strip():
+            return self.r2_endpoint_url.strip().rstrip("/")
+        account = self.r2_account_id.strip()
+        return f"https://{account}.r2.cloudflarestorage.com"
+
+    @property
+    def image_cdn_base(self) -> str:
+        return self.image_public_base_url.strip().rstrip("/")
 
 
 @lru_cache

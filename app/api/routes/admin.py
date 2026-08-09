@@ -22,6 +22,7 @@ from app.core.cookies import clear_admin_cookie, set_admin_cookie
 from app.core.database import get_db
 from app.core.images import process_content_image, process_thumbnail_image, read_upload_bytes
 from app.core.post_status import POST_STATUS_CHOICES, POST_STATUS_LABELS, PostStatus
+from app.core.storage import get_storage, safe_object_key
 from app.models.comment import COMMENT_STATUS_LABELS, CommentStatus
 from app.models.user import User
 from app.schemas.post import PostCreate, PostUpdate
@@ -34,7 +35,6 @@ from app.services.post_service import PostService
 from app.services.tag_service import TagService
 
 BASE_DIR = Path(__file__).resolve().parents[3]
-UPLOAD_DIR = BASE_DIR / "frontend" / "static" / "uploads"
 ADMIN_TEMPLATES = Jinja2Templates(directory=BASE_DIR / "admin" / "templates")
 settings = get_settings()
 ADMIN_TEMPLATES.env.globals["thumbnail_max_width"] = settings.thumbnail_max_width
@@ -161,12 +161,12 @@ def _form_status_context(
 
 async def _save_content_upload(file: UploadFile) -> str:
     data = await read_upload_bytes(file)
-    return process_content_image(data, UPLOAD_DIR).url
+    return process_content_image(data).url
 
 
 async def _save_thumbnail_upload(file: UploadFile) -> str:
     data = await read_upload_bytes(file)
-    return process_thumbnail_image(data, UPLOAD_DIR).url
+    return process_thumbnail_image(data).url
 
 
 def _format_bytes(size: int) -> str:
@@ -181,23 +181,17 @@ def _format_bytes(size: int) -> str:
 
 
 def _list_media_files() -> list[dict]:
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     files: list[dict] = []
-    for path in sorted(UPLOAD_DIR.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
-        if not path.is_file() or path.name.startswith("."):
-            continue
-        ext = path.suffix.lower()
-        stat = path.stat()
+    for obj in get_storage().list_objects():
+        ext = Path(obj.key).suffix.lower()
         files.append(
             {
-                "name": path.name,
-                "url": f"/static/uploads/{path.name}",
+                "name": obj.key,
+                "url": obj.url,
                 "ext": ext.lstrip(".").upper() or "FILE",
                 "is_image": ext in IMAGE_EXTS,
-                "size_label": _format_bytes(stat.st_size),
-                "modified": datetime.fromtimestamp(
-                    stat.st_mtime, tz=timezone.utc
-                ).strftime("%b %d, %Y"),
+                "size_label": _format_bytes(obj.size),
+                "modified": obj.modified.strftime("%b %d, %Y"),
             }
         )
     return files
@@ -263,7 +257,7 @@ async def admin_upload(
     admin: User = Depends(require_admin_page),
     _: None = Depends(require_csrf),
 ) -> JSONResponse:
-    saved = process_content_image(await read_upload_bytes(file), UPLOAD_DIR)
+    saved = process_content_image(await read_upload_bytes(file))
     # TinyMCE expects { location: "..." }
     return JSONResponse(
         {
@@ -603,10 +597,13 @@ async def admin_delete_media(
     admin: User = Depends(require_admin_page),
     _: None = Depends(require_csrf),
 ) -> RedirectResponse:
-    safe_name = Path(filename).name
-    path = UPLOAD_DIR / safe_name
-    if path.exists() and path.is_file() and path.resolve().parent == UPLOAD_DIR.resolve():
-        path.unlink()
+    key = safe_object_key(filename)
+    if key:
+        storage = get_storage()
+        stem = Path(key).stem
+        base = stem[: -len("-sm")] if stem.endswith("-sm") else stem
+        for sibling in (f"{base}.webp", f"{base}-sm.webp", f"{base}.avif"):
+            storage.delete(sibling)
     return RedirectResponse(url="/admin/media", status_code=status.HTTP_303_SEE_OTHER)
 
 

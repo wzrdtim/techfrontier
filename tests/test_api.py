@@ -12,6 +12,13 @@ os.environ["DEBUG"] = "true"
 os.environ["ADMIN_EMAIL"] = "admin@example.com"
 os.environ["ADMIN_USERNAME"] = "admin"
 os.environ["ADMIN_PASSWORD"] = "admin"
+os.environ["SITE_URL"] = "http://testserver"
+# Keep tests on local disk storage even if .env has R2 credentials.
+os.environ["R2_ACCOUNT_ID"] = ""
+os.environ["R2_ACCESS_KEY_ID"] = ""
+os.environ["R2_SECRET_ACCESS_KEY"] = ""
+os.environ["R2_BUCKET_NAME"] = ""
+os.environ["IMAGE_PUBLIC_BASE_URL"] = ""
 
 from app.core.config import get_settings
 from app.core import database as db_module

@@ -4,11 +4,13 @@ import uuid
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 from fastapi import HTTPException, UploadFile
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from app.core.config import get_settings
+from app.core.storage import ObjectStorage, get_storage
 
 try:
     from pillow_heif import register_avif_opener, register_heif_opener
@@ -40,7 +42,7 @@ ALLOWED_EXTENSIONS = {
     ".heif",
 }
 
-
+# Kept for admin/media callers that still import the path constant.
 UPLOAD_DIR = (
     Path(__file__).resolve().parents[2] / "frontend" / "static" / "uploads"
 )
@@ -56,15 +58,36 @@ class SavedImage:
 
 
 def _card_url_for(url: str) -> str:
-    path = Path(url)
-    return f"{path.parent}/{path.stem}-sm.webp"
+    """Derive the card companion URL without breaking absolute https:// URLs."""
+    if url.endswith(".webp") and not url.endswith("-sm.webp"):
+        return f"{url[:-5]}-sm.webp"
+    parts = urlsplit(url)
+    path = Path(parts.path)
+    card_path = f"{path.parent.as_posix().rstrip('/')}/{path.stem}-sm.webp"
+    if not card_path.startswith("/"):
+        card_path = "/" + card_path
+    return urlunsplit((parts.scheme, parts.netloc, card_path, "", ""))
 
 
-def _upload_exists(url: str) -> bool:
-    name = Path(url).name
-    if not name or name in {".", ".."} or "/" in name or "\\" in name:
+def _key_from_url(url: str) -> str | None:
+    name = Path(urlsplit(url).path).name
+    if not name or name in {".", ".."}:
+        return None
+    return name
+
+
+def _variant_available(url: str, storage: ObjectStorage | None = None) -> bool:
+    """True when the card/sibling object is expected to exist."""
+    settings = get_settings()
+    base = settings.image_cdn_base
+    if base and url.startswith(base + "/"):
+        # Thumbnails always upload a -sm companion to R2; avoid HEAD on every render.
+        return True
+    key = _key_from_url(url)
+    if not key:
         return False
-    return (UPLOAD_DIR / name).is_file()
+    store = storage or get_storage()
+    return store.exists(key)
 
 
 def thumbnail_srcset(url: str | None) -> str:
@@ -72,7 +95,7 @@ def thumbnail_srcset(url: str | None) -> str:
     if not url:
         return ""
     card = _card_url_for(url)
-    if _upload_exists(card):
+    if _variant_available(card):
         return f"{card} 640w, {url} 960w"
     return f"{url} 960w"
 
@@ -82,7 +105,7 @@ def thumbnail_card_url(url: str | None) -> str:
     if not url:
         return ""
     card = _card_url_for(url)
-    if _upload_exists(card):
+    if _variant_available(card):
         return card
     return url
 
@@ -134,20 +157,51 @@ def _unique_stem() -> str:
     return uuid.uuid4().hex
 
 
-def _write_webp(image: Image.Image, path: Path, quality: int) -> None:
-    rgb = _to_rgb(image)
-    rgb.save(path, format="WEBP", quality=quality, method=6)
+def _webp_bytes(image: Image.Image, quality: int) -> bytes:
+    buffer = BytesIO()
+    _to_rgb(image).save(buffer, format="WEBP", quality=quality, method=6)
+    return buffer.getvalue()
 
 
-def _write_avif(image: Image.Image, path: Path, quality: int) -> bool:
+def _avif_bytes(image: Image.Image, quality: int) -> bytes | None:
     if not _AVIF_AVAILABLE:
-        return False
+        return None
     try:
-        rgb = _to_rgb(image)
-        rgb.save(path, format="AVIF", quality=quality)
-        return True
+        buffer = BytesIO()
+        _to_rgb(image).save(buffer, format="AVIF", quality=quality)
+        return buffer.getvalue()
     except (OSError, ValueError, KeyError):
-        return False
+        return None
+
+
+def _store_image_variants(
+    image: Image.Image,
+    *,
+    stem: str,
+    storage: ObjectStorage,
+    quality: int,
+    avif_quality: int,
+    card: Image.Image | None = None,
+) -> SavedImage:
+    webp_key = f"{stem}.webp"
+    url = storage.put(webp_key, _webp_bytes(image, quality), "image/webp")
+
+    avif_data = _avif_bytes(image, avif_quality)
+    if avif_data is not None:
+        storage.put(f"{stem}.avif", avif_data, "image/avif")
+
+    card_url = None
+    if card is not None:
+        card_key = f"{stem}-sm.webp"
+        card_url = storage.put(card_key, _webp_bytes(card, quality), "image/webp")
+
+    return SavedImage(
+        url=url,
+        width=image.width,
+        height=image.height,
+        format="WEBP",
+        card_url=card_url,
+    )
 
 
 async def read_upload_bytes(file: UploadFile) -> bytes:
@@ -165,60 +219,49 @@ async def read_upload_bytes(file: UploadFile) -> bytes:
     return data
 
 
-def process_content_image(data: bytes, upload_dir: Path) -> SavedImage:
+def process_content_image(
+    data: bytes,
+    storage: ObjectStorage | None = None,
+) -> SavedImage:
     """Resize and store editor/content images as WebP (+ AVIF sidecar when available)."""
     settings = get_settings()
-    upload_dir.mkdir(parents=True, exist_ok=True)
-
+    store = storage or get_storage()
     image = _fit_within(
         _load_image(data),
         settings.image_max_width,
         settings.image_max_height,
     )
-    stem = _unique_stem()
-    webp_path = upload_dir / f"{stem}.webp"
-    _write_webp(image, webp_path, settings.image_webp_quality)
-
-    avif_path = upload_dir / f"{stem}.avif"
-    _write_avif(image, avif_path, settings.image_avif_quality)
-
-    return SavedImage(
-        url=f"/static/uploads/{webp_path.name}",
-        width=image.width,
-        height=image.height,
-        format="WEBP",
+    return _store_image_variants(
+        image,
+        stem=_unique_stem(),
+        storage=store,
+        quality=settings.image_webp_quality,
+        avif_quality=settings.image_avif_quality,
     )
 
 
-def process_thumbnail_image(data: bytes, upload_dir: Path) -> SavedImage:
+def process_thumbnail_image(
+    data: bytes,
+    storage: ObjectStorage | None = None,
+) -> SavedImage:
     """Resize and store post thumbnails as WebP (+ card srcset variant)."""
     settings = get_settings()
-    upload_dir.mkdir(parents=True, exist_ok=True)
-
+    store = storage or get_storage()
     image = _fit_within(
         _load_image(data),
         settings.thumbnail_max_width,
         settings.thumbnail_max_height,
     )
-    stem = _unique_stem()
-    webp_path = upload_dir / f"{stem}.webp"
-    _write_webp(image, webp_path, settings.image_webp_quality)
-
-    avif_path = upload_dir / f"{stem}.avif"
-    _write_avif(image, avif_path, settings.image_avif_quality)
-
     card = _fit_within(
         image,
         settings.thumbnail_card_max_width,
         settings.thumbnail_card_max_height,
     )
-    card_path = upload_dir / f"{stem}-sm.webp"
-    _write_webp(card, card_path, settings.image_webp_quality)
-
-    return SavedImage(
-        url=f"/static/uploads/{webp_path.name}",
-        width=image.width,
-        height=image.height,
-        format="WEBP",
-        card_url=f"/static/uploads/{card_path.name}",
+    return _store_image_variants(
+        image,
+        stem=_unique_stem(),
+        storage=store,
+        quality=settings.image_webp_quality,
+        avif_quality=settings.image_avif_quality,
+        card=card,
     )

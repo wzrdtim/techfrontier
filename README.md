@@ -118,8 +118,15 @@ This repo includes a [Render Blueprint](https://render.com/docs/infrastructure-a
 Notes:
 
 - Free web services sleep after idle time (first request can be slow).
-- Uploads are ephemeral on the free plan (lost on redeploy); use a paid disk or external storage for production media.
+- Image uploads use **Cloudflare R2** when `R2_*` + `IMAGE_PUBLIC_BASE_URL` are set (recommended: `https://images.techfrontier.se`). Without R2, files fall back to local `frontend/static/uploads/`.
 - Optional: set `SMTP_*` in the Render dashboard to email contact form messages to `ADMIN_EMAIL`.
+
+### Cloudflare R2 setup
+
+1. Create an R2 bucket and an API token with Object Read & Write.
+2. Attach a custom domain (e.g. `images.techfrontier.se`) to the bucket for public reads.
+3. Set the env vars below on Render (and locally in `.env`).
+4. New uploads are resized/converted as before, then stored in R2; the DB stores the full CDN URL.
 
 ## Environment variables
 
@@ -139,3 +146,9 @@ Notes:
 | `SMTP_USER` / `SMTP_PASSWORD` | SMTP credentials |
 | `SMTP_FROM` | From address (defaults to `ADMIN_EMAIL`) |
 | `SMTP_USE_TLS` | Use STARTTLS (default `true`) |
+| `R2_ACCOUNT_ID` | Cloudflare account ID |
+| `R2_ACCESS_KEY_ID` | R2 API access key |
+| `R2_SECRET_ACCESS_KEY` | R2 API secret key |
+| `R2_BUCKET_NAME` | R2 bucket name |
+| `R2_ENDPOINT_URL` | Optional S3 endpoint override |
+| `IMAGE_PUBLIC_BASE_URL` | Public CDN base, e.g. `https://images.techfrontier.se` |
